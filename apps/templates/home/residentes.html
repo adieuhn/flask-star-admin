@@ -1,0 +1,515 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Fondo semi-transparente */
+            display: flex;
+            justify-content: center; /* Centra horizontalmente */
+            align-items: center; /* Centra verticalmente */
+        }
+
+        /* Estilo para el contenido del modal */
+        .modal-content {
+            background-color: #fff;
+            width: 30%; /* Tamaño del modal (ajusta según sea necesario) */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Sombra suave */
+        }
+    </style>
+{% endblock stylesheets %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.0/css/buttons.dataTables.min.css">
+
+<script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.7.0/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.7.0/js/buttons.html5.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.7.0/js/buttons.print.min.js"></script>
+
+
+
+<!--     <div class="panel-header panel-header-sm">
+    </div>
+    <div class="content">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card card-plain">
+            <div class="card-header">
+              <h4 class="card-title"> Residentes</h4>
+              <button class="btn btn-primary" onclick="showAddResidenteModal()">Agregar Residente</button>
+            <h5>Agregar Residentes por lotes</h5>
+            <form method="post" enctype="multipart/form-data">
+                <input type="file" name="archivo_csv" accept=".csv" required>
+                <input type="submit" value="Cargar">
+            </form>
+        </div> -->
+
+        <div class="panel-header panel-header-sm">
+        </div>
+        <div class="content">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card card-plain" style="height: 100%; display: flex; flex-direction: column;">
+                <div class="card-header" style="background-color: #f7f7f7; padding: 10px;">
+                  <h4 class="card-title"> Residentes</h4>
+                  <button class="btn btn-primary" onclick="showAddResidenteModal()">Agregar Residente</button>
+                </div>
+                <div style="flex-grow: 1;"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card card-plain" style="height: 100%; display: flex; flex-direction: column;">
+                <div class="card-header" style="background-color: #f7f7f7; padding: 10px;">
+                  <h5>Agregar Residentes por lotes</h5>
+                  <div style="display: flex; justify-content: flex-end;">
+                    <b><a href="{{ config.ASSETS_ROOT }}/images/muestra.csv">Archivo de muestra</a></b>
+                  </div>
+                  <form method="post"  action="{{ url_for('home_blueprint.cargar_csv', numeroresidencia=numeroresidencia) }}" enctype="multipart/form-data">
+                    <div class="form-group">
+                      <input type="file" class="form-control-file" name="archivo_csv" accept=".csv" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Cargar</button>
+                  </form>
+                </div>
+                <div style="flex-grow: 1;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        
+        
+        
+        
+        
+
+
+<!-- Modal para editar residente -->
+<div id="editResidenteModal" class="modal">
+    <div class="modal-content col-md-4">
+        <span class="close" onclick="closeEditResidenteModal()">&times;</span>
+        <h2>Editar Residente</h2>
+        <form id="editResidenteForm">
+            <input type="hidden" id="editResidenteId">
+            <div class="form-group">
+                <label for="editCodigo">Código</label>
+                <input type="text" class="form-control" id="editCodigo" required>
+            </div>
+            <div class="form-group">
+                <label for="editNombres">Nombres</label>
+                <input type="text" class="form-control" id="editNombres" required>
+            </div>
+            <div class="form-group">
+                <label for="editApellidos">Apellidos</label>
+                <input type="text" class="form-control" id="editApellidos" required>
+            </div>
+            <div class="form-group">
+                <label for="editCelular">Celular</label>
+                <input type="text" class="form-control" id="editCelular">
+            </div>
+            <div class="form-group">
+                <label for="editNumeroCasa">Número de Casa</label>
+                <input type="text" class="form-control" id="editNumeroCasa">
+            </div>
+            <div class="form-group">
+                <label for="editCalle">Calle</label>
+                <input type="text" class="form-control" id="editCalle">
+            </div>
+            <div class="form-group">
+                <label for="editFotoPerfil">Foto de Perfil</label>
+                <input type="text" class="form-control" id="editFotoPerfil">
+            </div>
+            <div class="form-group">
+                <label for="editEstado">Estado</label>
+                <select class="form-control" id="editEstado" required>
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- Modal para Agregar residente -->
+
+            <div id="addResidenteModal" class="modal">
+        <div class="modal-content col-md-4">
+            <span class="close" onclick="closeAddResidenteModal()">&times;</span>
+            <h2>Agregar Residente</h2>
+            <form id="addResidenteForm">
+                <div class="form-group">
+                    <label for="codigo">Código</label>
+                    <input type="text" class="form-control" id="codigo" required>
+                </div>
+                <div class="form-group">
+                    <label for="nombres">Nombres</label>
+                    <input type="text" class="form-control" id="nombres" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellidos">Apellidos</label>
+                    <input type="text" class="form-control" id="apellidos" required>
+                </div>
+                <div class="form-group">
+                    <label for="celular">Celular</label>
+                    <input type="text" class="form-control" id="celular">
+                </div>
+                <div class="form-group">
+                    <label for="numeroCasa">Número de Casa</label>
+                    <input type="text" class="form-control" id="numeroCasa">
+                </div>
+                <div class="form-group">
+                    <label for="calle">Calle</label>
+                    <input type="text" class="form-control" id="calle">
+                </div>
+                <div class="form-group">
+                    <label for="fotoPerfil">Foto de Perfil</label>
+                    <input type="text" class="form-control" id="fotoPerfil">
+                </div>
+                <div class="form-group">
+                    <label for="estado">Estado</label>
+                    <select class="form-control" id="estado" required>
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Agregar</button>
+            </form>
+        </div>
+    </div>
+            <div class="card-body">
+              <div class="table-responsive">
+
+
+<table id="residentesTable">
+        <thead class=" text-secondary">
+            <tr>
+                <th>Código</th>
+                <th>Nombres</th>
+                <th>Apellidos</th>
+                <th>Celular</th>
+                <th>Número de Casa</th>
+                <th>Calle</th>
+                <th>Foto de Perfil</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+                <th style="display:none;">ResidenteId</th> <!-- Columna oculta para ResidenteId -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for residente in residentes %}
+            <tr id="residente-{{ residente.ResidenteId }}">
+                <td>{{ residente.Codigo }}</td>
+                <td>{{ residente.Nombres }}</td>
+                <td>{{ residente.Apellidos }}</td>
+                <td>{{ residente.Celular }}</td>
+                <td>{{ residente.NumeroCasa }}</td>
+                <td>{{ residente.Calle }}</td>
+                <td>{{ residente.FotoPerfil }}</td>
+                <td id="estado-{{ residente.ResidenteId }}">{{ "Activo" if residente.Estado else "Inactivo" }}</td>
+                <td></td>
+                <td style="display:none;">{{ residente.ResidenteId }}</td> <!-- Columna oculta para ResidenteId -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>            
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+    function toggleEstado(residenteId) {
+        // Realiza una solicitud POST al servidor Flask para cambiar el estado
+        fetch(`/toggle_estado/${residenteId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Actualiza visualmente el estado en la tabla
+            const estadoCell = document.getElementById(`estado-${residenteId}`);
+            estadoCell.textContent = data.estado ? 'Activo' : 'Inactivo';
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    
+    function rmusuario(residenteId) {
+            const token = '9tQDMN0&U3';  // Reemplaza esto con el token real
+
+            fetch('/delete_residente', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ residente_id: residenteId, token: token })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la solicitud de eliminación');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data.message);
+                // Eliminar la fila del DOM
+                const residenteElement = document.getElementById(`residente-${residenteId}`);
+                if (residenteElement) {
+                    residenteElement.remove();
+                }
+            })
+            .catch(error => {
+                console.error('Hubo un problema con la solicitud de eliminación:', error);
+            });
+        }
+        
+         document.getElementById('addResidenteForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const token = '9tQDMN0&U3';  // Reemplaza esto con el token real
+
+            const nuevoResidente = {
+                codigo: document.getElementById('codigo').value,
+                nombres: document.getElementById('nombres').value,
+                apellidos: document.getElementById('apellidos').value,
+                celular: document.getElementById('celular').value || null,
+                numeroCasa: document.getElementById('numeroCasa').value || null,
+                calle: document.getElementById('calle').value || null,
+                fotoPerfil: document.getElementById('fotoPerfil').value || null,
+                estado: document.getElementById('estado').value,
+                token: token,
+                residenciaId: {{numeroresidencia}}
+            };
+            console.log('Datos enviados al servidor:', JSON.stringify(nuevoResidente));  // Mostrar los datos enviados
+            fetch('/add_residente', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(nuevoResidente)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la solicitud de adición');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data.message);
+                // Actualizar la tabla con el nuevo residente
+                const residentesList = document.getElementById('residentesTable');
+                const newRow = document.createElement('tr');
+                newRow.id = `residente-${data.residente.ResidenteId}`;
+                newRow.innerHTML = `
+                    <td>${data.residente.Codigo}</td>
+                    <td>${data.residente.Nombres}</td>
+                    <td>${data.residente.Apellidos}</td>
+                    <td>${data.residente.Celular || ''}</td>
+                    <td>${data.residente.NumeroCasa || ''}</td>
+                    <td>${data.residente.Calle || ''}</td>
+                    <td>${data.residente.FotoPerfil || ''}</td>
+                    <td id="estado-${data.residente.ResidenteId}">${data.residente.Estado ? 'Activo' : 'Inactivo'}</td>
+                    <td>
+                    <button class="btn btn-secondary dropdown-toggle toggle-dark btn-lg mb-0 me-0" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Acciones </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
+                            <h6 class="dropdown-header">Acciones</h6>
+                                <a class="dropdown-item" onclick="toggleEstado(${data.residente.ResidenteId})">Cambiar Estado</a>
+                                <a class="dropdown-item" onclick="showEditResidenteModal(${data.residente.ResidenteId})">Editar</a>
+                                <a class="dropdown-item text-danger" onclick="rmusuario(${data.residente.ResidenteId})">Eliminar</a>
+                                <!-- <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Separated link</a> -->
+                        </div>    
+                    </td>
+                    <td style="display:none;">${ data.residente.ResidenteId }</td> <!-- Columna oculta para ResidenteId -->
+                    `;
+              residentesList.appendChild(newRow);
+              // Cerrar el modal
+                closeAddResidenteModal();
+            })
+            .catch(error => {
+                console.error('Hubo un problema con la solicitud de adición:', error);
+            });
+        });
+        
+                // Mostrar el modal para agregar residente
+    function showAddResidenteModal() {
+        document.getElementById('addResidenteModal').style.display = 'block';
+        }
+
+        // Cerrar el modal para agregar residente
+    function closeAddResidenteModal() {
+        document.getElementById('addResidenteModal').style.display = 'none';
+        document.getElementById('addResidenteForm').reset();
+        }
+       
+
+ $(document).ready(function() {
+            $('#residentesTable').DataTable({
+        buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ],
+                paging: false,
+                columnDefs: [
+                    {
+                        targets: 8, // Columna "Acciones"
+                        render: function(data, type, row) {
+                            const residenteId = row[9];
+                            return `
+                                <button class="btn btn-secondary dropdown-toggle toggle-dark btn-lg mb-0 me-0" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Acciones </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
+                                  <h6 class="dropdown-header">Acciones</h6>
+                                  <a class="dropdown-item" onclick="toggleEstado('${residenteId}')">Cambiar Estado</a>
+                                  <a class="dropdown-item" onclick="showEditResidenteModal('${residenteId}')">Editar</a>
+                                  <a class="dropdown-item text-danger" onclick="rmusuario('${residenteId}')">Eliminar</a>
+                                 <!-- <div class="dropdown-divider"></div>
+                                  <a class="dropdown-item" href="#">Separated link</a> -->
+                                </div>`;
+                        }
+                    }
+                ]
+            });
+        });
+
+function showEditResidenteModal(residenteId) {
+    const row = document.getElementById(`residente-${residenteId}`);
+    const cells = row.getElementsByTagName('td');
+
+    document.getElementById('editResidenteId').value = residenteId;
+    document.getElementById('editCodigo').value = cells[0].textContent;
+    document.getElementById('editNombres').value = cells[1].textContent;
+    document.getElementById('editApellidos').value = cells[2].textContent;
+    document.getElementById('editCelular').value = cells[3].textContent;
+    document.getElementById('editNumeroCasa').value = cells[4].textContent;
+    document.getElementById('editCalle').value = cells[5].textContent;
+    document.getElementById('editFotoPerfil').value = cells[6].textContent;
+    document.getElementById('editEstado').value = cells[7].textContent === 'Activo' ? 'true' : 'false';
+
+    document.getElementById('editResidenteModal').style.display = 'block';
+}
+
+document.getElementById('editResidenteForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const residenteId = document.getElementById('editResidenteId').value;
+    const token = '9tQDMN0&U3';  // Reemplaza esto con el token real
+
+    const updatedResidente = {
+        codigo: document.getElementById('editCodigo').value,
+        nombres: document.getElementById('editNombres').value,
+        apellidos: document.getElementById('editApellidos').value,
+        celular: document.getElementById('editCelular').value || null,
+        numeroCasa: document.getElementById('editNumeroCasa').value || null,
+        calle: document.getElementById('editCalle').value || null,
+        fotoPerfil: document.getElementById('editFotoPerfil').value || null,
+        estado: document.getElementById('editEstado').value,
+        token: token,
+        residenciaId: {{numeroresidencia}}
+    };
+
+    console.log('Datos enviados al servidor:', JSON.stringify(updatedResidente));  // Mostrar los datos enviados
+
+    fetch(`/edit_residente/${residenteId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedResidente)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la solicitud de edición');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data.message);
+        // Actualizar la fila en la tabla con los datos editados
+        const row = document.getElementById(`residente-${residenteId}`);
+        row.cells[0].textContent = updatedResidente.codigo;
+        row.cells[1].textContent = updatedResidente.nombres;
+        row.cells[2].textContent = updatedResidente.apellidos;
+        row.cells[3].textContent = updatedResidente.celular;
+        row.cells[4].textContent = updatedResidente.numeroCasa;
+        row.cells[5].textContent = updatedResidente.calle;
+        row.cells[6].textContent = updatedResidente.fotoPerfil;
+        row.cells[7].textContent = updatedResidente.estado === 'true' ? 'Activo' : 'Inactivo';
+
+        // Cerrar el modal
+        closeEditResidenteModal();
+    })
+	    .catch(error => {
+        console.error('Hubo un problema con la solicitud de edición:', error);
+    });
+});
+
+function closeEditResidenteModal() {
+    document.getElementById('editResidenteModal').style.display = 'none';
+}
+
+</script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css">
+
+<!-- DataTables JS -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.7.0/js/dataTables.buttons.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.0/css/buttons.dataTables.min.css">
+
+{% endblock javascripts %}

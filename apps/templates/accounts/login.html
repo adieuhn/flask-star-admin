@@ -19,14 +19,14 @@
                 <img src="{{ config.ASSETS_ROOT }}/images/logo.svg" alt="logo">
               </div>
               <h4>
-                Open-source Seed Project
+                Janua Residentes
               </h4>
               <br />
               <h6 class="fw-light">
                 {% if msg %}
                     <span class="text-danger">{{ msg | safe }}</span>
                 {% else %}
-                    Add your credentials
+                    Ingrese sus credenciales
                 {% endif %}
               </h6>
               <form method="post" action="" class="pt-3">
@@ -46,11 +46,12 @@
                   <div class="form-check">
                     <label class="form-check-label text-muted">
                       <input type="checkbox" class="form-check-input">
-                      Keep me signed in
+                      Mantenga mi sesion abierta
                     </label>
                   </div>
                   <a href="{{ url_for('authentication_blueprint.register') }}" class="auth-link text-black">Create Account</a>
                 </div>
+                <!--
                 <div class="text-center mt-4 fw-light">
                   &copy; <a target="_blank" href="https://bit.ly/2UTgih5">BootstrapDash</a>
                    - coded by AppSeed.
@@ -58,6 +59,7 @@
                   <a target="_blank"
                      href="https://appseed.us/product/star-admin/flask/">Download Product</a>
                 </div>
+                -->
               </form>
             </div>
           </div>

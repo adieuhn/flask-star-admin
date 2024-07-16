@@ -1,0 +1,85 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Tables {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css">
+
+<!-- DataTables JS -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+
+    <div class="panel-header panel-header-sm">
+    </div>
+    <div class="content">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card card-plain">
+            <div class="card-header">
+              <h4 class="card-title"> Residenciales Afiliadas</h4>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table" id="miTabla">
+                  <thead class=" text-secondary">
+                    <th>
+                      ResidenciaId
+                    </th>
+                    <th>
+                      Nombre Residencia
+                    </th>
+                    <th>
+                      Direccion
+                    </th>
+                    <th class="text-right">
+                      Fecha Registro
+                    </th>
+                    <th class="text-right">
+                      Activo?
+                    </th>
+                  </thead>
+                  <tbody>
+ {% for item in residencia%}
+                    <tr>
+                      <td>
+                      {{  item.ResidenciaId1 }}
+                      </td>
+                      <td>
+                      <a href="/tablas/{{  item.ResidenciaId1}}">{{  item.NombreResidencia}}</a>
+                      </td>
+                      <td>
+                     {{   item.Direccion}}
+                      </td>
+                      <td class="text-right">
+                      {{  item.FechaRegistro}}
+                      </td>
+                      <td class="text-right">
+                      {{"SI" if  item.Estado else "NO"}}
+                      </td>
+                    </tr>
+{% endfor%}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script>
+
+</script>
+
+
+{% endblock javascripts %}
