@@ -43,6 +43,9 @@
                     <th class="text-right">
                       Activo?
                     </th>
+                    <th>
+                      Ultima Actualizacion
+                    </th>
                   </thead>
                   <tbody>
  {% for item in residencia%}
@@ -61,6 +64,9 @@
                       </td>
                       <td class="text-right">
                       {{"SI" if  item.Estado else "NO"}}
+                      </td>
+                      <td>
+                        {{item.Ultimaactualizacion}}
                       </td>
                     </tr>
 {% endfor%}
